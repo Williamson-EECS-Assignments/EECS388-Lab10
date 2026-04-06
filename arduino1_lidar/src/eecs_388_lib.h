@@ -29,6 +29,10 @@
 #define GPIO_1          (1)     /* UART0_TX */
 #define GPIO_0          (0)     /* UART0_RX */
 
+#define LED_RED         GPIO_13
+#define LED_GREEN       GPIO_12
+#define LED_BLUE        GPIO_11
+
 /******************************************************************************
  *   eecs388 library APIs (similiar to Arduino)
  *******************************************************************************/
