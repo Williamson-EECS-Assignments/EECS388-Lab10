@@ -87,12 +87,12 @@ void enable_timer_interrupt();
 void enable_external_interrupt();
 void enable_interrupt();
 void disable_interrupt();
-void register_trap_handler(void *func);
+void register_trap_handler(void* func);
 
 void ser_setup(int devid);
 int  ser_isready(int devid);
 void ser_write(int devid, char c);
-void ser_printline(int devid, char *str);
+void ser_printline(int devid, char* str);
 char ser_read(int devid);
-int ser_readline(int devid, int n, char *str);
+int ser_readline(int devid, int n, char* str);
 #endif // __EECS388_LIB_H__
