@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <limits.h>
 
 #include "eecs_388_lib.h"
 
@@ -16,31 +17,33 @@
  *          Input/Output (IO) pins are configured
  *******************************************************************************/
 void setup() {
-    gpio_mode(LED_RED, GPIO_OUTPUT);
-    gpio_mode(LED_GREEN, GPIO_OUTPUT);
-    gpio_mode(LED_BLUE, GPIO_OUTPUT);
-
     uart_init();
 }
 
-void setLED(uint8_t red, uint8_t green, uint8_t blue) {
-    gpio_write(LED_RED, red);
-    gpio_write(LED_GREEN, green);
-    gpio_write(LED_BLUE, blue);
+void upload(uint16_t* uploadDist, uint16_t dist, uint32_t* uploadTimer) {
+    // only want to get a new value every 200ms
+    if ((millis() % UINT_MAX) - (*uploadTimer) >= 200) {
+        *uploadDist = dist;
+        uint8_t up = uint8_t(dist);
+        if (up < *uploadDist) up = UCHAR_MAX;
+        ser_write(up);
+    }
 }
 
 /******************************************************************************
  *   Function: loop() - Main execution loop
- *      Pre condition: 
+ *      Pre condition:
  *          setup() has been executed and system is initialized
- *      Post condition: 
+ *      Post condition:
  *          Performs a single iteration of the system's function
  *          Repeates indefinetely unless the board is reset or powered off
  *******************************************************************************/
 void loop() {
+    // want a rolling average
     uint16_t dist = 0;              /* LIDAR distance data is 16 bits. */
-    int flashing = millis();
-    uint8_t redFlash = 0;
+
+    uint32_t uploadTimer = millis();
+    uint16_t uploadDist = dist;
 
     ser_printline("Setup completed.");
     ser_write('\n');
@@ -61,21 +64,7 @@ void loop() {
             }
         }
         dist = (dist_h << 8) | dist_l;
-        ser_printf("%d", dist);
 
-        if (dist > 200) {
-            setLED(OFF, ON, OFF);
-        } else if (100 < dist && dist <= 200) {
-            setLED(ON, ON, OFF);
-        } else if (60 < dist && dist <= 100) {
-            setLED(ON, OFF, OFF);
-        } else if (dist <= 60) {
-            if (millis() - flashing >= 100) { // if it has been more than 100ms
-                // flip flashing
-                redFlash ^= 1;
-                setLED(redFlash, OFF, OFF);
-                flashing = millis();
-            }
-        }
+        upload(&uploadDist, dist, &uploadTimer);
     }
 }
